@@ -1,4 +1,11 @@
-FROM openjdk:8u121
+FROM openjdk:8-stretch as wrapperbuild
+RUN apt-get update && apt-get -y install libncurses5-dev libcunit1-dev openjdk-8-jdk unzip wget build-essential ant
+RUN cd /tmp && wget -O wrapper-sources.zip https://sourceforge.net/projects/wrapper/files/wrapper_src/Wrapper_3.5.35_20180412/wrapper_3.5.35_src.zip/download && \
+	unzip wrapper-sources.zip
+RUN cd /tmp/wrapper_3.5.35_src && cp src/c/Makefile-linux-x86-64.make src/c/Makefile-linux-aarch64-64.make
+RUN cd /tmp/wrapper_3.5.35_src && JAVA_HOME=/usr/lib/jvm/java-8-openjdk-arm64/ ANT_HOME=/usr/share/ant sh build64.sh
+
+FROM openjdk:8-stretch
 MAINTAINER Lu Han <lhan@xetus.com>
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
@@ -39,6 +46,8 @@ RUN chmod +x /usr/local/bin/init.bash &&\
   init.bash &&\
   rm /usr/local/bin/init.bash
 
+COPY --from=wrapperbuild /tmp/wrapper_3.5.35_src/bin/wrapper /opt/archiva/bin/wrapper-linux-aarch64-64
+COPY --from=wrapperbuild /tmp/wrapper_3.5.35_src/lib/libwrapper.so /opt/archiva/lib/libwrapper-linux-aarch64-64.so
 #
 # Add the bootstrap cmd
 #
