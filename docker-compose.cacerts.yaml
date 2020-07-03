@@ -1,0 +1,8 @@
+version: '2.4'
+services:
+  #
+  # The primary archiva service
+  #
+  archiva:
+    volumes:
+      - ./cacerts-test:/certs

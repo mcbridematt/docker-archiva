@@ -1,0 +1,35 @@
+version: '2.4'
+services:
+  #
+  # The primary archiva service
+  #
+  archiva:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from: 
+        - openjdk:8-jdk-alpine
+        - xetusoss/archiva:latest
+        - xetusoss/archiva:v2
+      args:
+        BUILD_SNAPSHOT_RELEASE: ${BUILD_SNAPSHOT_RELEASE:-false}
+    image: archiva:develop
+    ports: [ "8080:8080" ]
+    networks:
+      - container
+    environment:
+      SMTP_HOST: smtp
+      SMTP_PORT: 1025
+    cpus: 2.0
+    mem_limit: 512m
+    #
+  # Used for validating mail is sent as expected
+  #
+  smtp:
+    image: mailhog/mailhog:latest
+    ports: [ "8025:8025" ]
+    networks:
+      - container
+
+networks:
+  container:
